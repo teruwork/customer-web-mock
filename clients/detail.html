@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>顧客詳細</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+  <div class="min-h-screen bg-gray-50 p-4 md:p-6">
+    <h1 class="text-2xl font-bold mb-4" id="clientName">顧客詳細</h1>
+    <div class="mb-4 flex justify-between items-center">
+      <a href="/index.html" class="text-blue-600 underline">← 顧客一覧に戻る</a>
+      <button onclick="openEditModal()" class="px-4 py-2 bg-yellow-500 text-white rounded">訂正</button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <div class="bg-white p-4 rounded shadow" id="basicInfo">
+        <h2 class="font-semibold text-lg mb-2">基本情報</h2>
+      </div>
+      <div class="bg-white p-4 rounded shadow" id="contactInfo">
+        <h2 class="font-semibold text-lg mb-2">担当者情報</h2>
+      </div>
+    </div>
+
+    <div class="bg-white p-4 rounded shadow mb-6" id="meetingHistory">
+      <h2 class="font-semibold text-lg mb-2">面談履歴</h2>
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">日付</th>
+            <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">内容</th>
+            <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">参加者</th>
+          </tr>
+        </thead>
+        <tbody id="meetingBody" class="divide-y divide-gray-200"></tbody>
+      </table>
+    </div>
+
+    <div class="bg-white p-4 rounded shadow mb-6" id="productList">
+      <h2 class="font-semibold text-lg mb-2">取り扱い商品一覧</h2>
+      <ul id="productItems" class="list-disc list-inside"></ul>
+    </div>
+
+    <div class="bg-white p-4 rounded shadow" id="salesHistory">
+      <h2 class="font-semibold text-lg mb-2">販売実績</h2>
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">年月</th>
+            <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">商品名</th>
+            <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">数量</th>
+            <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">金額</th>
+          </tr>
+        </thead>
+        <tbody id="salesBody" class="divide-y divide-gray-200"></tbody>
+      </table>
+    </div>
+
+    <!-- 訂正モーダル -->
+    <div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+      <div class="bg-white p-6 rounded shadow-lg w-full max-w-3xl overflow-y-auto max-h-screen">
+        <h2 class="text-lg font-bold mb-4">顧客編集</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div><label class="block text-sm">会社名 *</label><input id="name" class="w-full border rounded px-2 py-1" /></div>
+          <div><label class="block text-sm">得意先コード</label><input id="code" class="w-full border rounded px-2 py-1" /></div>
+          <div><label class="block text-sm">郵便番号</label><input id="postal" class="w-full border rounded px-2 py-1" /></div>
+          <div><label class="block text-sm">所在地</label><input id="address" class="w-full border rounded px-2 py-1" /></div>
+          <div><label class="block text-sm">電話番号</label><input id="phone" class="w-full border rounded px-2 py-1" /></div>
+          <div><label class="block text-sm">FAX番号</label><input id="fax" class="w-full border rounded px-2 py-1" /></div>
+          <div><label class="block text-sm">設立年月日</label><input id="established" class="w-full border rounded px-2 py-1" /></div>
+          <div class="md:col-span-2"><label class="block text-sm">顧客メモ</label><input id="memo" class="w-full border rounded px-2 py-1" /></div>
+        </div>
+        <div class="mt-4">
+          <label class="block font-semibold mb-2">担当者一覧</label>
+          <div id="contacts"></div>
+          <button onclick="addContactRow()" class="mt-2 px-3 py-1 bg-gray-200 hover:bg-gray-300 text-sm rounded">＋ 担当者を追加</button>
+        </div>
+        <div class="mt-4 flex justify-end gap-2">
+          <button onclick="closeModal()" class="px-4 py-2 border rounded">キャンセル</button>
+          <button onclick="saveEdit()" class="px-4 py-2 bg-blue-600 text-white rounded">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const client = JSON.parse(localStorage.getItem('selectedClient'));
+      if (client) {
+        document.getElementById('clientName').textContent = client.name + ' - 顧客詳細';
+        const basicInfo = `
+          <p><strong>会社名:</strong> ${client.name}</p>
+          <p><strong>所在地:</strong> ${client.address}</p>
+          <p><strong>郵便番号:</strong> ${client.postal}</p>
+          <p><strong>得意先コード:</strong> ${client.code}</p>
+          <p><strong>設立:</strong> ${client.established}</p>
+          <p><strong>電話番号:</strong> ${client.phone}</p>
+          <p><strong>FAX:</strong> ${client.fax}</p>
+          <p><strong>メモ:</strong> ${client.memo}</p>
+        `;
+        document.getElementById('basicInfo').insertAdjacentHTML('beforeend', basicInfo);
+        client.contacts.forEach(c => {
+          const contact = `
+            <div class="mb-3">
+              <p><strong>名前:</strong> ${c.name}</p>
+              <p><strong>役職:</strong> ${c.title || ''}</p>
+              <p><strong>メール:</strong> ${c.email}</p>
+              <p><strong>メモ:</strong> ${c.note}</p>
+            </div>`;
+          document.getElementById('contactInfo').insertAdjacentHTML('beforeend', contact);
+        });
+        client.meetings?.forEach(m => {
+          const row = `
+            <tr>
+              <td class="px-4 py-2 text-sm">${m.date}</td>
+              <td class="px-4 py-2 text-sm">${m.content}</td>
+              <td class="px-4 py-2 text-sm">${m.attendees}</td>
+            </tr>`;
+          document.getElementById('meetingBody').insertAdjacentHTML('beforeend', row);
+        });
+        client.products?.forEach(p => {
+          document.getElementById('productItems').insertAdjacentHTML('beforeend', `<li>${p}</li>`);
+        });
+        client.sales?.forEach(s => {
+          const row = `
+            <tr>
+              <td class="px-4 py-2 text-sm">${s.date}</td>
+              <td class="px-4 py-2 text-sm">${s.product}</td>
+              <td class="px-4 py-2 text-sm">${s.quantity}</td>
+              <td class="px-4 py-2 text-sm">${s.amount}</td>
+            </tr>`;
+          document.getElementById('salesBody').insertAdjacentHTML('beforeend', row);
+        });
+      }
+    </script>
+  </body>
+</html>

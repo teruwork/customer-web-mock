@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>顧客一覧</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+  <div class="min-h-screen bg-gray-100 p-6">
+    <h1 class="text-2xl font-bold mb-4">顧客一覧</h1>
+
+    <!-- ✅ トースト通知 -->
+    <div id="toast" class="fixed top-4 right-4 bg-green-500 text-white py-2 px-4 rounded shadow hidden z-50">保存しました</div>
+
+    <div class="mb-4 flex gap-3">
+      <button class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded" onclick="openClientModal()">新規</button>
+    </div>
+
+    <div class="bg-white shadow-md rounded-lg overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-4 py-2"><input type="checkbox" onclick="toggleAll(this)" /></th>
+            <th class="px-4 py-2 text-sm font-medium text-gray-500">会社名</th>
+            <th class="px-4 py-2 text-sm font-medium text-gray-500">所在地</th>
+            <th class="px-4 py-2 text-sm font-medium text-gray-500">担当者</th>
+            <th class="px-4 py-2 text-sm font-medium text-gray-500">操作</th>
+          </tr>
+        </thead>
+        <tbody id="clientTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ✅ 共通モーダル -->
+  <div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+    <div class="bg-white p-6 rounded shadow-lg w-full max-w-3xl overflow-y-auto max-h-screen">
+      <h2 class="text-lg font-bold mb-4" id="modalTitle">顧客登録</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div><label class="block text-sm">会社名 *</label><input id="name" class="w-full border rounded px-2 py-1" /></div>
+        <div><label class="block text-sm">得意先コード</label><input id="code" class="w-full border rounded px-2 py-1" /></div>
+        <div><label class="block text-sm">郵便番号</label><input id="postal" class="w-full border rounded px-2 py-1" /></div>
+        <div><label class="block text-sm">所在地</label><input id="address" class="w-full border rounded px-2 py-1" /></div>
+        <div><label class="block text-sm">電話番号</label><input id="phone" class="w-full border rounded px-2 py-1" /></div>
+        <div><label class="block text-sm">FAX番号</label><input id="fax" class="w-full border rounded px-2 py-1" /></div>
+        <div><label class="block text-sm">設立年月日</label><input id="established" class="w-full border rounded px-2 py-1" /></div>
+        <div class="md:col-span-2"><label class="block text-sm">顧客メモ</label><input id="memo" class="w-full border rounded px-2 py-1" /></div>
+      </div>
+      <div class="mt-4">
+        <label class="block font-semibold mb-2">担当者一覧</label>
+        <div id="contacts"></div>
+        <button onclick="addContactRow()" class="mt-2 px-3 py-1 bg-gray-200 hover:bg-gray-300 text-sm rounded">＋ 担当者を追加</button>
+      </div>
+      <div class="mt-4 flex justify-end gap-2">
+        <button onclick="closeModal()" class="px-4 py-2 border rounded">キャンセル</button>
+        <button onclick="saveClient()" class="px-4 py-2 bg-blue-600 text-white rounded">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let editIndex = null;
+
+    function openClientModal(index = null) {
+      const clients = JSON.parse(localStorage.getItem("clients") || "[]");
+      const isEdit = index !== null;
+      editIndex = isEdit ? index : null;
+      const c = isEdit ? clients[index] : {};
+      document.getElementById("modalTitle").textContent = isEdit ? "顧客編集" : "新規顧客登録";
+
+      ["name", "code", "postal", "address", "phone", "fax", "established", "memo"].forEach(id => {
+        document.getElementById(id).value = c[id] || "";
+      });
+
+      const container = document.getElementById("contacts");
+      container.innerHTML = "";
+      (c.contacts || [{}]).forEach(contact => addContactRow(contact));
+
+      document.getElementById("modal").classList.remove("hidden");
+    }
+
+    function closeModal() {
+      document.getElementById("modal").classList.add("hidden");
+      editIndex = null;
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.remove("hidden");
+      setTimeout(() => toast.classList.add("hidden"), 2000);
+    }
+
+    function addContactRow(data = {}) {
+      const container = document.getElementById("contacts");
+      const div = document.createElement("div");
+      div.className = "flex gap-2 mb-2 items-center";
+      div.innerHTML = `
+        <input placeholder="名前" class="border px-2 py-1 rounded w-1/3" value="${data.name || ''}" />
+        <input placeholder="メール" class="border px-2 py-1 rounded w-1/3" value="${data.email || ''}" />
+        <input placeholder="メモ" class="border px-2 py-1 rounded w-1/3" value="${data.note || ''}" />
+        <button onclick="this.parentNode.remove()" class="text-red-500 text-sm">✕</button>
+      `;
+      container.appendChild(div);
+    }
+
+    function saveClient() {
+      const data = {};
+      ["name", "code", "postal", "address", "phone", "fax", "established", "memo"].forEach(id => {
+        data[id] = document.getElementById(id).value.trim();
+      });
+      if (!data.name) return alert("会社名は必須です");
+
+      const contacts = [];
+      document.querySelectorAll("#contacts > div").forEach(div => {
+        const [name, email, note] = div.querySelectorAll("input");
+        if (name.value.trim()) {
+          contacts.push({ name: name.value.trim(), email: email.value.trim(), note: note.value.trim() });
+        }
+      });
+      data.contacts = contacts;
+
+      const clients = JSON.parse(localStorage.getItem("clients") || "[]");
+      if (editIndex !== null) {
+        clients[editIndex] = data;
+      } else {
+        clients.push(data);
+      }
+      localStorage.setItem("clients", JSON.stringify(clients));
+      closeModal();
+      loadClients();
+      showToast("保存しました");
+    }
+
+    function loadClients() {
+      const clients = JSON.parse(localStorage.getItem("clients") || "[]");
+      const tbody = document.getElementById("clientTableBody");
+      tbody.innerHTML = "";
+
+      clients.forEach((client, index) => {
+        const row = document.createElement("tr");
+        row.className = "hover:bg-gray-100";
+        row.innerHTML = `
+          <td class="px-4 py-2"><input type="checkbox" class="row-check" /></td>
+          <td class="px-4 py-2 text-sm font-medium text-gray-900 cursor-pointer" onclick='openClientDetail(${index})'>${client.name}</td>
+          <td class="px-4 py-2 text-sm text-gray-500 cursor-pointer" onclick='openClientDetail(${index})'>${client.address || ""}</td>
+          <td class="px-4 py-2 text-sm text-gray-500 cursor-pointer" onclick='openClientDetail(${index})'>${client.contacts?.[0]?.name || ""}</td>
+          <td class="px-4 py-2 text-sm">
+            <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 text-xs rounded mr-2" onclick='openClientModal(${index})'>訂正</button>
+            <button class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 text-xs rounded" onclick='deleteClient(${index})'>削除</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function openClientDetail(index) {
+      const clients = JSON.parse(localStorage.getItem("clients") || "[]");
+      localStorage.setItem("selectedClient", JSON.stringify(clients[index]));
+      window.location.href = "clients/detail.html";
+    }
+
+    function deleteClient(index) {
+      if (!confirm("この顧客を削除しますか？")) return;
+      const clients = JSON.parse(localStorage.getItem("clients") || "[]");
+      clients.splice(index, 1);
+      localStorage.setItem("clients", JSON.stringify(clients));
+      loadClients();
+      showToast("削除しました");
+    }
+
+    function toggleAll(master) {
+      document.querySelectorAll(".row-check").forEach(cb => cb.checked = master.checked);
+    }
+
+    function initWithSampleData() {
+      if (!localStorage.getItem("clients")) {
+        localStorage.setItem("clients", JSON.stringify([
+          {
+            name: "株式会社イチノセキ",
+            code: "123",
+            postal: "105-0011",
+            address: "東京都港区芝公園●●",
+            phone: "03-1234-5678",
+            fax: "03-1234-9999",
+            established: "2015年3月",
+            memo: "長期的な取引を希望。資料送付の頻度に注意。",
+            contacts: [
+              { name: "鈴木 太郎", email: "suzuki@example.com", note: "価格重視" },
+              { name: "田中 花子", email: "tanaka@example.com", note: "サポート重視" }
+            ]
+          }
+        ]));
+      }
+    }
+
+    window.onload = () => {
+      initWithSampleData();
+      loadClients();
+    };
+  </script>
+</body>
+</html>
