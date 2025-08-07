@@ -98,11 +98,10 @@
           <p><strong>メモ:</strong> ${client.memo}</p>
         `;
         document.getElementById('basicInfo').insertAdjacentHTML('beforeend', basicInfo);
-        client.contacts.forEach(c => {
+        client.contacts?.forEach(c => {
           const contact = `
             <div class="mb-3">
               <p><strong>名前:</strong> ${c.name}</p>
-              <p><strong>役職:</strong> ${c.title || ''}</p>
               <p><strong>メール:</strong> ${c.email}</p>
               <p><strong>メモ:</strong> ${c.note}</p>
             </div>`;
@@ -131,6 +130,60 @@
           document.getElementById('salesBody').insertAdjacentHTML('beforeend', row);
         });
       }
+
+      function openEditModal() {
+        const keys = ["name","code","postal","address","phone","fax","established","memo"];
+        keys.forEach(id => document.getElementById(id).value = client[id] || "");
+        const container = document.getElementById("contacts");
+        container.innerHTML = "";
+        (client.contacts || [{}]).forEach(addContactRow);
+        document.getElementById("modal").classList.remove("hidden");
+      }
+
+      function closeModal() {
+        document.getElementById("modal").classList.add("hidden");
+      }
+
+      function addContactRow(data = {}) {
+        const container = document.getElementById("contacts");
+        const div = document.createElement("div");
+        div.className = "flex gap-2 mb-2 items-center";
+        div.innerHTML = `
+          <input placeholder="名前" class="border px-2 py-1 rounded w-1/3" value="${data.name || ''}" />
+          <input placeholder="メール" class="border px-2 py-1 rounded w-1/3" value="${data.email || ''}" />
+          <input placeholder="メモ" class="border px-2 py-1 rounded w-1/3" value="${data.note || ''}" />
+          <button onclick="this.parentNode.remove()" class="text-red-500 text-sm">✕</button>
+        `;
+        container.appendChild(div);
+      }
+
+      function saveEdit() {
+        const updated = {};
+        ["name","code","postal","address","phone","fax","established","memo"].forEach(id => {
+          updated[id] = document.getElementById(id).value.trim();
+        });
+
+        const contacts = [];
+        document.querySelectorAll("#contacts > div").forEach(div => {
+          const [name, email, note] = div.querySelectorAll("input");
+          if (name.value.trim()) {
+            contacts.push({ name: name.value.trim(), email: email.value.trim(), note: note.value.trim() });
+          }
+        });
+        updated.contacts = contacts;
+
+        const clients = JSON.parse(localStorage.getItem("clients") || "[]");
+        const index = clients.findIndex(c => c.name === client.name && c.code === client.code);
+        if (index !== -1) {
+          updated.meetings = client.meetings || [];
+          updated.products = client.products || [];
+          updated.sales = client.sales || [];
+          clients[index] = updated;
+          localStorage.setItem("clients", JSON.stringify(clients));
+          localStorage.setItem("selectedClient", JSON.stringify(updated));
+          location.reload();
+        }
+      }
     </script>
-  </body>
+</body>
 </html>
