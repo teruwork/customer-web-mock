@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>顧客詳細</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
+
 <body>
   <div class="min-h-screen bg-gray-50 p-4 md:p-6">
     <h1 class="text-2xl font-bold mb-4" id="clientName">顧客詳細</h1>
@@ -23,18 +25,33 @@
       </div>
     </div>
 
-    <div class="bg-white p-4 rounded shadow mb-6" id="meetingHistory">
-      <h2 class="font-semibold text-lg mb-2">面談履歴</h2>
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-100">
-          <tr>
-            <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">日付</th>
-            <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">内容</th>
-            <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">参加者</th>
-          </tr>
-        </thead>
-        <tbody id="meetingBody" class="divide-y divide-gray-200"></tbody>
-      </table>
+    <div class="bg-white p-4 rounded shadow mb-6" id="summaryInfo">
+      <h2 class="font-semibold text-lg mb-2">概況</h2>
+      <p id="clientMemo" class="whitespace-pre-wrap min-h-[6rem] text-gray-800"></p>
+    </div>
+
+    <div class="bg-white p-4 rounded shadow mb-6">
+      <div class="flex justify-between items-center mb-2">
+        <label class="block font-semibold">面談履歴</label>
+        <button onclick="addMeetingRow()" class="px-3 py-1 bg-gray-200 hover:bg-gray-300 text-sm rounded">＋
+          面談履歴を追加</button>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full table-auto border border-gray-200">
+          <thead class="bg-gray-100">
+            <tr>
+              <th class="px-2 py-1 text-left text-xs text-gray-600">日付</th>
+              <th class="px-2 py-1 text-left text-xs text-gray-600">商談先</th>
+              <th class="px-2 py-1 text-left text-xs text-gray-600">商談相手</th>
+              <th class="px-2 py-1 text-left text-xs text-gray-600">内容</th>
+              <th class="px-2 py-1 text-left text-xs text-gray-600">要望・課題</th>
+              <th class="px-2 py-1 text-left text-xs text-gray-600">次回アクション</th>
+              <th class="px-2 py-1 text-left text-xs text-gray-600">制御</th>
+            </tr>
+          </thead>
+          <tbody id="meetings"></tbody>
+        </table>
+      </div>
     </div>
 
     <div class="bg-white p-4 rounded shadow mb-6" id="productList">
@@ -62,19 +79,28 @@
       <div class="bg-white p-6 rounded shadow-lg w-full max-w-3xl overflow-y-auto max-h-screen">
         <h2 class="text-lg font-bold mb-4">顧客編集</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div><label class="block text-sm">会社名 *</label><input id="name" class="w-full border rounded px-2 py-1" /></div>
-          <div><label class="block text-sm">得意先コード</label><input id="code" class="w-full border rounded px-2 py-1" /></div>
-          <div><label class="block text-sm">郵便番号</label><input id="postal" class="w-full border rounded px-2 py-1" /></div>
-          <div><label class="block text-sm">所在地</label><input id="address" class="w-full border rounded px-2 py-1" /></div>
-          <div><label class="block text-sm">電話番号</label><input id="phone" class="w-full border rounded px-2 py-1" /></div>
-          <div><label class="block text-sm">FAX番号</label><input id="fax" class="w-full border rounded px-2 py-1" /></div>
-          <div><label class="block text-sm">設立年月日</label><input id="established" class="w-full border rounded px-2 py-1" /></div>
-          <div class="md:col-span-2"><label class="block text-sm">顧客メモ</label><input id="memo" class="w-full border rounded px-2 py-1" /></div>
+          <div><label class="block text-sm">会社名 *</label><input id="name" class="w-full border rounded px-2 py-1" />
+          </div>
+          <div><label class="block text-sm">得意先コード</label><input id="code" class="w-full border rounded px-2 py-1" />
+          </div>
+          <div><label class="block text-sm">郵便番号</label><input id="postal" class="w-full border rounded px-2 py-1" />
+          </div>
+          <div><label class="block text-sm">所在地</label><input id="address" class="w-full border rounded px-2 py-1" />
+          </div>
+          <div><label class="block text-sm">電話番号</label><input id="phone" class="w-full border rounded px-2 py-1" />
+          </div>
+          <div><label class="block text-sm">FAX番号</label><input id="fax" class="w-full border rounded px-2 py-1" />
+          </div>
+          <div><label class="block text-sm">設立年月日</label><input id="established"
+              class="w-full border rounded px-2 py-1" /></div>
+          <div class="md:col-span-2"><label class="block text-sm">顧客メモ</label><input id="memo"
+              class="w-full border rounded px-2 py-1" /></div>
         </div>
         <div class="mt-4">
           <label class="block font-semibold mb-2">担当者一覧</label>
           <div id="contacts"></div>
-          <button onclick="addContactRow()" class="mt-2 px-3 py-1 bg-gray-200 hover:bg-gray-300 text-sm rounded">＋ 担当者を追加</button>
+          <button onclick="addContactRow()" class="mt-2 px-3 py-1 bg-gray-200 hover:bg-gray-300 text-sm rounded">＋
+            担当者を追加</button>
         </div>
         <div class="mt-4 flex justify-end gap-2">
           <button onclick="closeModal()" class="px-4 py-2 border rounded">キャンセル</button>
@@ -95,9 +121,9 @@
           <p><strong>設立:</strong> ${client.established}</p>
           <p><strong>電話番号:</strong> ${client.phone}</p>
           <p><strong>FAX:</strong> ${client.fax}</p>
-          <p><strong>メモ:</strong> ${client.memo}</p>
         `;
         document.getElementById('basicInfo').insertAdjacentHTML('beforeend', basicInfo);
+        document.getElementById('clientMemo').textContent = client.memo || "";
         client.contacts?.forEach(c => {
           const contact = `
             <div class="mb-3">
@@ -107,15 +133,7 @@
             </div>`;
           document.getElementById('contactInfo').insertAdjacentHTML('beforeend', contact);
         });
-        client.meetings?.forEach(m => {
-          const row = `
-            <tr>
-              <td class="px-4 py-2 text-sm">${m.date}</td>
-              <td class="px-4 py-2 text-sm">${m.content}</td>
-              <td class="px-4 py-2 text-sm">${m.attendees}</td>
-            </tr>`;
-          document.getElementById('meetingBody').insertAdjacentHTML('beforeend', row);
-        });
+        (client.meetings || []).forEach(m => addMeetingRow(m, false));
         client.products?.forEach(p => {
           document.getElementById('productItems').insertAdjacentHTML('beforeend', `<li>${p}</li>`);
         });
@@ -132,16 +150,98 @@
       }
 
       function openEditModal() {
-        const keys = ["name","code","postal","address","phone","fax","established","memo"];
+        const keys = ["name", "code", "postal", "address", "phone", "fax", "established", "memo"];
         keys.forEach(id => document.getElementById(id).value = client[id] || "");
         const container = document.getElementById("contacts");
         container.innerHTML = "";
         (client.contacts || [{}]).forEach(addContactRow);
+        const mContainer = document.getElementById("meetings");
+        mContainer.innerHTML = "";
+        (client.meetings || []).forEach(addMeetingRow);
         document.getElementById("modal").classList.remove("hidden");
       }
 
       function closeModal() {
         document.getElementById("modal").classList.add("hidden");
+      }
+
+      function addMeetingRow(data = {}, isNew = true) {
+        const container = document.getElementById("meetings");
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+    <td class="border px-2 py-1"><input type="date" value="${data.date || ''}" class="w-full border rounded px-1 py-0.5"></td>
+    <td class="border px-2 py-1"><input placeholder="商談先" value="${data.place || ''}" class="w-full border rounded px-1 py-0.5"></td>
+    <td class="border px-2 py-1"><input placeholder="商談相手" value="${data.attendees || ''}" class="w-full border rounded px-1 py-0.5"></td>
+    <td class="border px-2 py-1"><textarea placeholder="内容" class="w-full border rounded px-1 py-0.5">${data.content || ''}</textarea></td>
+    <td class="border px-2 py-1"><textarea placeholder="要望・課題" class="w-full border rounded px-1 py-0.5">${data.issues || ''}</textarea></td>
+    <td class="border px-2 py-1"><textarea placeholder="次回アクション" class="w-full border rounded px-1 py-0.5">${data.next || ''}</textarea></td>
+    <td class="border px-2 py-1 text-center control-col">
+      ${isNew
+            ? `<button class="text-blue-600 text-sm" onclick="saveMeetingRow(this)">保存</button>`
+            : `<button class="text-red-500 text-sm" onclick="deleteMeetingRow(this)">✕</button>`}
+    </td>
+  `;
+        container.appendChild(tr);
+      }
+
+      function saveMeetingRow(btn) {
+        const row = btn.closest("tr");
+        const inputs = row.querySelectorAll("input, textarea");
+        const newMeeting = {
+          date: inputs[0].value,
+          place: inputs[1].value,
+          attendees: inputs[2].value,
+          content: inputs[3].value,
+          issues: inputs[4].value,
+          next: inputs[5].value
+        };
+
+        const clients = JSON.parse(localStorage.getItem("clients") || "[]");
+        const selected = JSON.parse(localStorage.getItem("selectedClient") || "{}");
+        const index = clients.findIndex(c => c.name === selected.name && c.code === selected.code);
+
+        if (index !== -1) {
+          clients[index].meetings = clients[index].meetings || [];
+          clients[index].meetings.push(newMeeting);
+          localStorage.setItem("clients", JSON.stringify(clients));
+          localStorage.setItem("selectedClient", JSON.stringify(clients[index]));
+
+          // update row: 保存 → 削除ボタンに変える
+          row.querySelector(".control-col").innerHTML =
+            `<button class="text-red-500 text-sm" onclick="deleteMeetingRow(this)">✕</button>`;
+        }
+      }
+
+      function deleteMeetingRow(btn) {
+        const row = btn.closest("tr");
+        const inputs = row.querySelectorAll("input, textarea");
+        const deleted = {
+          date: inputs[0].value,
+          place: inputs[1].value,
+          attendees: inputs[2].value,
+          content: inputs[3].value,
+          issues: inputs[4].value,
+          next: inputs[5].value
+        };
+
+        const clients = JSON.parse(localStorage.getItem("clients") || "[]");
+        const selected = JSON.parse(localStorage.getItem("selectedClient") || "{}");
+        const index = clients.findIndex(c => c.name === selected.name && c.code === selected.code);
+
+        if (index !== -1) {
+          clients[index].meetings = (clients[index].meetings || []).filter(m =>
+            !(m.date === deleted.date &&
+              m.place === deleted.place &&
+              m.attendees === deleted.attendees &&
+              m.content === deleted.content &&
+              m.issues === deleted.issues &&
+              m.next === deleted.next)
+          );
+          localStorage.setItem("clients", JSON.stringify(clients));
+          localStorage.setItem("selectedClient", JSON.stringify(clients[index]));
+        }
+
+        row.remove();
       }
 
       function addContactRow(data = {}) {
@@ -159,7 +259,7 @@
 
       function saveEdit() {
         const updated = {};
-        ["name","code","postal","address","phone","fax","established","memo"].forEach(id => {
+        ["name", "code", "postal", "address", "phone", "fax", "established", "memo"].forEach(id => {
           updated[id] = document.getElementById(id).value.trim();
         });
 
@@ -172,10 +272,24 @@
         });
         updated.contacts = contacts;
 
+        // const meetings = [];
+        // document.querySelectorAll("#meetings > div").forEach(div => {
+        //   const inputs = div.querySelectorAll("input, textarea");
+        //   meetings.push({
+        //     date: inputs[0].value,
+        //     place: inputs[1].value,
+        //     attendees: inputs[2].value,
+        //     content: inputs[3].value,
+        //     issues: inputs[4].value,
+        //     next: inputs[5].value
+        //   });
+        // });
+        // updated.meetings = meetings;
+
         const clients = JSON.parse(localStorage.getItem("clients") || "[]");
         const index = clients.findIndex(c => c.name === client.name && c.code === client.code);
         if (index !== -1) {
-          updated.meetings = client.meetings || [];
+          // updated.meetings = client.meetings || [];
           updated.products = client.products || [];
           updated.sales = client.sales || [];
           clients[index] = updated;
@@ -186,4 +300,5 @@
       }
     </script>
 </body>
+
 </html>
