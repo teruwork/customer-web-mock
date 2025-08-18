@@ -1,20 +1,24 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>顧客一覧</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
+
 <body>
   <div class="min-h-screen bg-gray-100 p-6">
     <h1 class="text-2xl font-bold mb-4">顧客一覧</h1>
 
     <!-- ✅ トースト通知 -->
-    <div id="toast" class="fixed top-4 right-4 bg-green-500 text-white py-2 px-4 rounded shadow hidden z-50">保存しました</div>
+    <div id="toast" class="fixed top-4 right-4 bg-green-500 text-white py-2 px-4 rounded shadow hidden z-50">保存しました
+    </div>
 
     <div class="mb-4 flex gap-3">
-      <button class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded" onclick="openClientModal()">新規</button>
+      <button class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+        onclick="openClientModal()">新規</button>
     </div>
 
     <div class="bg-white shadow-md rounded-lg overflow-x-auto">
@@ -39,19 +43,26 @@
       <h2 class="text-lg font-bold mb-4" id="modalTitle">顧客登録</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div><label class="block text-sm">会社名 *</label><input id="name" class="w-full border rounded px-2 py-1" /></div>
-        <div><label class="block text-sm">得意先コード</label><input id="code" class="w-full border rounded px-2 py-1" /></div>
-        <div><label class="block text-sm">郵便番号</label><input id="postal" class="w-full border rounded px-2 py-1" /></div>
-        <div><label class="block text-sm">所在地</label><input id="address" class="w-full border rounded px-2 py-1" /></div>
+        <div><label class="block text-sm">得意先コード</label><input id="code" class="w-full border rounded px-2 py-1" />
+        </div>
+        <div><label class="block text-sm">郵便番号</label><input id="postal" class="w-full border rounded px-2 py-1" />
+        </div>
+        <div><label class="block text-sm">所在地</label><input id="address" class="w-full border rounded px-2 py-1" />
+        </div>
         <div><label class="block text-sm">電話番号</label><input id="phone" class="w-full border rounded px-2 py-1" /></div>
         <div><label class="block text-sm">FAX番号</label><input id="fax" class="w-full border rounded px-2 py-1" /></div>
-        <div><label class="block text-sm">設立年月日</label><input id="established" class="w-full border rounded px-2 py-1" /></div>
-        <div><label class="block text-sm">販売目標（t）</label><input id="target" class="w-full border rounded px-2 py-1" /></div>
-        <div class="md:col-span-2"><label class="block text-sm">概況</label><input id="memo" class="w-full border rounded px-2 py-1" /></div>
+        <div><label class="block text-sm">設立年月日</label><input id="established"
+            class="w-full border rounded px-2 py-1" /></div>
+        <div><label class="block text-sm">販売目標（t）</label><input id="target" class="w-full border rounded px-2 py-1" />
+        </div>
+        <div class="md:col-span-2"><label class="block text-sm">概況</label><input id="memo"
+            class="w-full border rounded px-2 py-1" /></div>
       </div>
       <div class="mt-4">
         <label class="block font-semibold mb-2">担当者一覧</label>
         <div id="contacts"></div>
-        <button onclick="addContactRow()" class="mt-2 px-3 py-1 bg-gray-200 hover:bg-gray-300 text-sm rounded">＋ 担当者を追加</button>
+        <button onclick="addContactRow()" class="mt-2 px-3 py-1 bg-gray-200 hover:bg-gray-300 text-sm rounded">＋
+          担当者を追加</button>
       </div>
       <div class="mt-4 flex justify-end gap-2">
         <button onclick="closeModal()" class="px-4 py-2 border rounded">キャンセル</button>
@@ -176,26 +187,168 @@
     }
 
     function initWithSampleData() {
-      if (!localStorage.getItem("clients")) {
-        localStorage.setItem("clients", JSON.stringify([
+      const clientsRaw = localStorage.getItem("clients");
+      const clients = JSON.parse(clientsRaw || "[]");
+
+      if (!clientsRaw || clients.length === 0) {
+        const sampleClients = [
           {
             name: "株式会社イチノセキ",
             code: "123",
             postal: "105-0011",
-            address: "東京都港区芝公園●●",
-            phone: "03-1234-5678",
-            fax: "03-1234-9999",
+            address: "東京都港区芝公園1-1-1",
+            phone: "03-1111-1111",
+            fax: "03-1111-2222",
             established: "2015年3月",
             target: 500,
             memo: "長期的な取引を希望。資料送付の頻度に注意。",
             contacts: [
               { name: "鈴木 太郎", email: "suzuki@example.com", note: "価格重視" },
               { name: "田中 花子", email: "tanaka@example.com", note: "サポート重視" }
+            ],
+            sales: [
+              { term: 2022, weight: 450, amount: 1800 },
+              { term: 2023, weight: 500, amount: 2200 },
+              { term: 2024, weight: 530, amount: 2350 }
+            ],
+            products: [
+              { term: 2023, code: "A01", name: "特製飼料α", paper: 20, tb: 2, bulk: 300 },
+              { term: 2023, code: "A02", name: "特製飼料β", paper: 10, tb: 0, bulk: 500 },
+              { term: 2024, code: "B01", name: "高栄養タイプ", paper: 0, tb: 3, bulk: 200 }
+            ],
+            meetings: [
+              {
+                date: "2024-03-15",
+                place: "本社",
+                attendees: "鈴木部長",
+                content: "新製品紹介と反応確認",
+                issues: "初回ロット納期調整",
+                next: "サンプル送付後に再提案"
+              },
+              {
+                date: "2024-06-10",
+                place: "オンライン",
+                attendees: "田中主任",
+                content: "契約更新についての打合せ",
+                issues: "支払いサイト見直し要望",
+                next: "来週中に社内稟議後回答"
+              },
+              {
+                date: "2024-08-01",
+                place: "展示会ブース",
+                attendees: "山田課長",
+                content: "展示会での意見ヒアリング",
+                issues: "取り扱い品目の絞り込み",
+                next: "サンプル選定後再アプローチ"
+              }
+            ]
+          },
+          {
+            name: "有限会社オオサカミルズ",
+            code: "456",
+            postal: "530-0001",
+            address: "大阪府大阪市北区梅田2-2-2",
+            phone: "06-2222-2222",
+            fax: "06-2222-3333",
+            established: "2010年7月",
+            target: 300,
+            memo: "関西地区の重要拠点。夏場の出荷に注意。",
+            contacts: [
+              { name: "吉田 実", email: "yoshida@example.com", note: "品質重視" }
+            ],
+            sales: [
+              { term: 2022, weight: 280, amount: 1300 },
+              { term: 2023, weight: 300, amount: 1500 },
+              { term: 2024, weight: 310, amount: 1580 }
+            ],
+            products: [
+              { term: 2023, code: "C01", name: "夏向けブレンド", paper: 15, tb: 1, bulk: 400 },
+              { term: 2024, code: "C02", name: "冷涼地対応型", paper: 5, tb: 2, bulk: 250 },
+              { term: 2024, code: "C03", name: "新商品2024", paper: 0, tb: 1, bulk: 300 }
+            ],
+            meetings: [
+              {
+                date: "2024-04-01",
+                place: "大阪支社",
+                attendees: "吉田所長",
+                content: "出荷量と単価見直し要望",
+                issues: "倉庫スペース不足",
+                next: "次回提案資料提出予定"
+              },
+              {
+                date: "2024-05-20",
+                place: "オンライン",
+                attendees: "佐藤課長",
+                content: "仕入単価調整",
+                issues: "他社比較による要望強",
+                next: "社内稟議通過後報告"
+              },
+              {
+                date: "2024-07-10",
+                place: "展示会ブース",
+                attendees: "営業部全体",
+                content: "展示会報告共有",
+                issues: "パンフレット不足",
+                next: "次回出展検討"
+              }
+            ]
+          },
+          {
+            name: "株式会社ホクトフィード",
+            code: "789",
+            postal: "381-0000",
+            address: "長野県長野市南千歳1-3-5",
+            phone: "026-333-4444",
+            fax: "026-333-5555",
+            established: "2008年11月",
+            target: 400,
+            memo: "寒冷地対応の要望多め。TB比率高。",
+            contacts: [
+              { name: "森下 洋子", email: "morishita@example.com", note: "冬季需要重視" }
+            ],
+            sales: [
+              { term: 2022, weight: 390, amount: 1700 },
+              { term: 2023, weight: 400, amount: 1780 },
+              { term: 2024, weight: 410, amount: 1850 }
+            ],
+            products: [
+              { term: 2023, code: "D01", name: "寒冷地専用", paper: 0, tb: 4, bulk: 100 },
+              { term: 2023, code: "D02", name: "酪農向け飼料", paper: 10, tb: 0, bulk: 600 },
+              { term: 2024, code: "D03", name: "新型ミックス", paper: 5, tb: 1, bulk: 200 }
+            ],
+            meetings: [
+              {
+                date: "2024-03-10",
+                place: "長野本社",
+                attendees: "森下課長",
+                content: "冬季対応製品の追加要望",
+                issues: "納期短縮が必要",
+                next: "見積もり提出"
+              },
+              {
+                date: "2024-06-25",
+                place: "オンライン",
+                attendees: "調達部門",
+                content: "価格改定協議",
+                issues: "原料高騰の説明が必要",
+                next: "資料送付後再提案"
+              },
+              {
+                date: "2024-08-05",
+                place: "電話",
+                attendees: "購買担当",
+                content: "緊急追加発注の相談",
+                issues: "物流費が増大",
+                next: "社内で検討"
+              }
             ]
           }
-        ]));
+        ];
+
+        localStorage.setItem("clients", JSON.stringify(sampleClients));
       }
     }
+
 
     window.onload = () => {
       initWithSampleData();
@@ -203,4 +356,5 @@
     };
   </script>
 </body>
+
 </html>
