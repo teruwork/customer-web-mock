@@ -43,14 +43,14 @@
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-100">
           <tr>
-            <th class="px-2 py-1 text-xs text-left text-gray-600">期</th>
-            <th class="px-2 py-1 text-xs text-left text-gray-600">重量（t）</th>
-            <th class="px-2 py-1 text-xs text-left text-gray-600">前年比</th>
-            <th class="px-2 py-1 text-xs text-left text-gray-600">金額（千円）</th>
-            <th class="px-2 py-1 text-xs text-left text-gray-600">前年比</th>
-            <th class="px-2 py-1 text-xs text-left text-gray-600">単価（kg/円）</th>
-            <th class="px-2 py-1 text-xs text-left text-gray-600">前年比</th>
-            <th class="px-2 py-1 text-xs text-left text-gray-600">制御</th>
+            <th class="px-2 py-1 text-xs text-left text-gray-600 border border-gray-200">期</th>
+            <th class="px-2 py-1 text-xs text-left text-gray-600 border border-gray-200">重量（t）</th>
+            <th class="px-2 py-1 text-xs text-left text-gray-600 border border-gray-200">前年比</th>
+            <th class="px-2 py-1 text-xs text-left text-gray-600 border border-gray-200">金額（千円）</th>
+            <th class="px-2 py-1 text-xs text-left text-gray-600 border border-gray-200">前年比</th>
+            <th class="px-2 py-1 text-xs text-left text-gray-600 border border-gray-200">単価（kg/円）</th>
+            <th class="px-2 py-1 text-xs text-left text-gray-600 border border-gray-200">前年比</th>
+            <th class="px-2 py-1 text-xs text-left text-gray-600 border border-gray-200">制御</th>
           </tr>
         </thead>
         <tbody id="salesBody" class="divide-y divide-gray-200"></tbody>
@@ -58,8 +58,28 @@
     </div>
 
     <div class="bg-white p-4 rounded shadow mb-6" id="productList">
-      <h2 class="font-semibold text-lg mb-2">取扱商品一覧</h2>
-      <ul id="productItems" class="list-disc list-inside"></ul>
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="font-semibold text-lg">使用銘柄</h2>
+        <button onclick="addProductRow()" class="px-3 py-1 bg-gray-200 hover:bg-gray-300 text-sm rounded">＋
+          使用銘柄を追加</button>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full table-auto border border-gray-200">
+          <thead class="bg-gray-100">
+            <tr>
+              <th class="px-2 py-1 text-left text-xs text-gray-600 border border-gray-200">期</th>
+              <th class="px-2 py-1 text-left text-xs text-gray-600 border border-gray-200">コード</th>
+              <th class="px-2 py-1 text-left text-xs text-gray-600 border border-gray-200">製品名</th>
+              <th class="px-2 py-1 text-left text-xs text-gray-600 border border-gray-200">紙袋</th>
+              <th class="px-2 py-1 text-left text-xs text-gray-600 border border-gray-200">TB</th>
+              <th class="px-2 py-1 text-left text-xs text-gray-600 border border-gray-200">バラ</th>
+              <th class="px-2 py-1 text-left text-xs text-gray-600 border border-gray-200">合計（kg）</th>
+              <th class="px-2 py-1 text-left text-xs text-gray-600 border border-gray-200">制御</th>
+            </tr>
+          </thead>
+          <tbody id="productBody"></tbody>
+        </table>
+      </div>
     </div>
 
     <div class="bg-white p-4 rounded shadow mb-6">
@@ -72,13 +92,13 @@
         <table class="min-w-full table-auto border border-gray-200">
           <thead class="bg-gray-100">
             <tr>
-              <th class="px-2 py-1 text-left text-xs text-gray-600">日付</th>
-              <th class="px-2 py-1 text-left text-xs text-gray-600">商談先</th>
-              <th class="px-2 py-1 text-left text-xs text-gray-600">商談相手</th>
-              <th class="px-2 py-1 text-left text-xs text-gray-600">内容</th>
-              <th class="px-2 py-1 text-left text-xs text-gray-600">要望・課題</th>
-              <th class="px-2 py-1 text-left text-xs text-gray-600">次回アクション</th>
-              <th class="px-2 py-1 text-left text-xs text-gray-600">制御</th>
+              <th class="px-2 py-1 text-left text-xs text-gray-600 border border-gray-200">日付</th>
+              <th class="px-2 py-1 text-left text-xs text-gray-600 border border-gray-200">商談先</th>
+              <th class="px-2 py-1 text-left text-xs text-gray-600 border border-gray-200">商談相手</th>
+              <th class="px-2 py-1 text-left text-xs text-gray-600 border border-gray-200">内容</th>
+              <th class="px-2 py-1 text-left text-xs text-gray-600 border border-gray-200">要望・課題</th>
+              <th class="px-2 py-1 text-left text-xs text-gray-600 border border-gray-200">次回アクション</th>
+              <th class="px-2 py-1 text-left text-xs text-gray-600 border border-gray-200">制御</th>
             </tr>
           </thead>
           <tbody id="meetings"></tbody>
@@ -162,14 +182,14 @@
 
           const html = `
             <tr>
-              <td class="px-2 py-1 text-sm">${s.term}</td>
-              <td class="px-2 py-1 text-sm text-right">${format(s.weight)}</td>
-              <td class="px-2 py-1 text-sm text-right">${diff(s.weight, prev?.weight)}</td>
-              <td class="px-2 py-1 text-sm text-right">${format(s.amount)}</td>
-              <td class="px-2 py-1 text-sm text-right">${diff(s.amount, prev?.amount)}</td>
-              <td class="px-2 py-1 text-sm text-right">${format(Math.round(price))}</td>
-              <td class="px-2 py-1 text-sm text-right">${diff(price, prev?.amount && prev?.weight ? prev.amount * 1000 / prev.weight : undefined)}</td>
-              <td class="px-2 py-1 text-center control-col">
+              <td class="px-2 py-1 text-sm border border-gray-200">${s.term}</td>
+              <td class="px-2 py-1 text-sm border border-gray-200 text-right">${format(s.weight)}</td>
+              <td class="px-2 py-1 text-sm border border-gray-200 text-right">${diff(s.weight, prev?.weight)}</td>
+              <td class="px-2 py-1 text-sm border border-gray-200 text-right">${format(s.amount)}</td>
+              <td class="px-2 py-1 text-sm border border-gray-200 text-right">${diff(s.amount, prev?.amount)}</td>
+              <td class="px-2 py-1 text-sm border border-gray-200 text-right">${format(Math.round(price))}</td>
+              <td class="px-2 py-1 text-sm border border-gray-200 text-right">${diff(price, prev?.amount && prev?.weight ? prev.amount * 1000 / prev.weight : undefined)}</td>
+              <td class="px-2 py-1 text-center border border-gray-200 control-col">
                 <button class="text-red-500 text-sm mr-2" onclick="deleteSalesRow(this)">✕</button>
                 <button class="text-blue-500 text-sm" onclick="editSalesRow(this)">✏️ 訂正</button>
               </td>
@@ -177,10 +197,28 @@
           `;
           document.getElementById("salesBody").insertAdjacentHTML("beforeend", html);
         });
-        (client.meetings || []).forEach(m => addMeetingRow(m, false));
-        client.products?.forEach(p => {
-          document.getElementById('productItems').insertAdjacentHTML('beforeend', `<li>${p}</li>`);
+        (client.products || []).forEach(p => {
+          const tbody = document.getElementById("productBody");
+          const tr = document.createElement("tr");
+
+          const total = calculateProductTotal(p.paper, p.tb, p.bulk);
+
+          tr.innerHTML = `
+            <td class="px-2 py-1 text-sm border border-gray-200">${p.term}</td>
+            <td class="px-2 py-1 text-sm border border-gray-200">${p.code}</td>
+            <td class="px-2 py-1 text-sm border border-gray-200">${p.name}</td>
+            <td class="px-2 py-1 text-sm border border-gray-200 text-right">${p.paper || ""}</td>
+            <td class="px-2 py-1 text-sm border border-gray-200 text-right">${p.tb || ""}</td>
+            <td class="px-2 py-1 text-sm border border-gray-200 text-right">${p.bulk?.toLocaleString?.() || ""}</td>
+            <td class="px-2 py-1 text-sm border border-gray-200 text-right">${total}</td>
+            <td class="px-2 py-1 text-center border border-gray-200 control-col">
+              <button class="text-red-500 text-sm mr-2" onclick="deleteProductRow(this)">✕</button>
+              <button class="text-blue-500 text-sm" onclick="editProductRow(this)">✏️ 訂正</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
         });
+        (client.meetings || []).forEach(m => addMeetingRow(m, false));
       }
 
       function openEditModal() {
@@ -208,19 +246,19 @@
         const amount = data.amount || "";
 
         tr.innerHTML = `
-    <td class="border px-2 py-1"><input type="number" class="w-full border rounded px-1 py-0.5 term" value="${term}"></td>
-    <td class="border px-2 py-1"><input type="number" class="w-full border rounded px-1 py-0.5 weight" value="${weight}" onchange="updateSalesRow(this)"></td>
-    <td class="border px-2 py-1 text-sm text-center">-</td>
-    <td class="border px-2 py-1"><input type="number" class="w-full border rounded px-1 py-0.5 amount" value="${amount}" onchange="updateSalesRow(this)"></td>
-    <td class="border px-2 py-1 text-sm text-center">-</td>
-    <td class="border px-2 py-1 text-sm text-right unitPrice">-</td>
-    <td class="border px-2 py-1 text-sm text-center">-</td>
-    <td class="border px-2 py-1 text-center control-col">
-      ${isNew
+          <td class="border px-2 py-1"><input type="number" class="w-full border rounded px-1 py-0.5 term" value="${term}"></td>
+          <td class="border px-2 py-1"><input type="number" class="w-full border rounded px-1 py-0.5 weight" value="${weight}" onchange="updateSalesRow(this)"></td>
+          <td class="border px-2 py-1 text-sm text-center">-</td>
+          <td class="border px-2 py-1"><input type="number" class="w-full border rounded px-1 py-0.5 amount" value="${amount}" onchange="updateSalesRow(this)"></td>
+          <td class="border px-2 py-1 text-sm text-center">-</td>
+          <td class="border px-2 py-1 text-sm text-right unitPrice">-</td>
+          <td class="border px-2 py-1 text-sm text-center">-</td>
+          <td class="border px-2 py-1 text-center control-col">
+          ${isNew
             ? `<button class="text-blue-600 text-sm" onclick="saveSalesRow(this)">保存</button>`
             : `<button class="text-red-500 text-sm" onclick="deleteSalesRow(this)">✕</button>`}
-    </td>
-  `;
+          </td>
+        `;
         tbody.appendChild(tr);
       }
 
@@ -262,7 +300,6 @@
           location.reload();
         }
       }
-
 
       function editSalesRow(btn) {
         const row = btn.closest("tr");
@@ -307,7 +344,6 @@
         }
       }
 
-
       function deleteSalesRow(btn) {
         const row = btn.closest("tr");
         const term = parseInt(row.children[0]?.textContent.trim());
@@ -327,6 +363,153 @@
           localStorage.setItem("selectedClient", JSON.stringify(clients[index]));
           location.reload();
         }
+      }
+
+      <!-- 使用銘柄追加機能のロジック -->
+      function addProductRow(data = {}, isNew = true) {
+        const tbody = document.getElementById("productBody");
+        const tr = document.createElement("tr");
+
+        const term = data.term || "";
+        const code = data.code || "";
+        const name = data.name || "";
+        const paper = data.paper || "";
+        const tb = data.tb || "";
+        const bulk = data.bulk || "";
+        const total = calculateProductTotal(paper, tb, bulk);
+
+        tr.innerHTML = `
+          <td class="border px-2 py-1"><input type="number" class="w-full border rounded px-1 py-0.5 term" value="${term}"></td>
+          <td class="border px-2 py-1"><input type="text" class="w-full border rounded px-1 py-0.5 code" value="${code}"></td>
+          <td class="border px-2 py-1"><input type="text" class="w-full border rounded px-1 py-0.5 name" value="${name}"></td>
+          <td class="border px-2 py-1"><input type="number" class="w-full border rounded px-1 py-0.5 paper" value="${paper}" onchange="updateProductTotal(this)"></td>
+          <td class="border px-2 py-1"><input type="number" class="w-full border rounded px-1 py-0.5 tb" value="${tb}" onchange="updateProductTotal(this)"></td>
+          <td class="border px-2 py-1"><input type="number" class="w-full border rounded px-1 py-0.5 bulk" value="${bulk}" onchange="updateProductTotal(this)"></td>
+          <td class="border px-2 py-1 text-sm text-right total">${total}</td>
+          <td class="border px-2 py-1 text-center control-col">
+          ${isNew
+            ? `<button class="text-blue-600 text-sm" onclick="saveProductRow(this)">保存</button>`
+            : `
+                <button class="text-red-500 text-sm mr-2" onclick="deleteProductRow(this)">✕</button>
+                <button class="text-blue-500 text-sm" onclick="editProductRow(this)">✏️ 訂正</button>
+          `}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      }
+
+      function calculateProductTotal(paper, tb, bulk) {
+        const p = parseInt(paper || 0);
+        const t = parseInt(tb || 0);
+        const b = parseInt(bulk || 0);
+        const total = (p * 20) + (t * 500) + b;
+        return total ? total.toLocaleString() : "";
+      }
+
+      function updateProductTotal(input) {
+        const row = input.closest("tr");
+        const paper = row.querySelector(".paper")?.value;
+        const tb = row.querySelector(".tb")?.value;
+        const bulk = row.querySelector(".bulk")?.value;
+        const totalCell = row.querySelector(".total");
+        totalCell.textContent = calculateProductTotal(paper, tb, bulk);
+      }
+
+      function saveProductRow(btn) {
+        const row = btn.closest("tr");
+        const term = parseInt(row.querySelector(".term")?.value);
+        const code = row.querySelector(".code")?.value.trim();
+        const name = row.querySelector(".name")?.value.trim();
+        const paper = parseInt(row.querySelector(".paper")?.value || 0);
+        const tb = parseInt(row.querySelector(".tb")?.value || 0);
+        const bulk = parseInt(row.querySelector(".bulk")?.value || 0);
+
+        if (!term || !code || !name) return alert("期・コード・製品名は必須です");
+
+        const newItem = { term, code, name, paper, tb, bulk };
+        const clients = JSON.parse(localStorage.getItem("clients") || "[]");
+        const selected = JSON.parse(localStorage.getItem("selectedClient") || "{}");
+        const index = clients.findIndex(c => c.name === selected.name && c.code === selected.code);
+
+        if (index !== -1) {
+          clients[index].products = clients[index].products || [];
+          // 編集時の上書きチェック
+          const existingRow = row.dataset.originalTerm && row.dataset.originalCode && row.dataset.originalName
+            ? clients[index].products.findIndex(p =>
+              p.term == row.dataset.originalTerm &&
+              p.code == row.dataset.originalCode &&
+              p.name == row.dataset.originalName)
+            : -1;
+
+          if (existingRow !== -1) {
+            // 上書き
+            clients[index].products[existingRow] = newItem;
+          } else {
+            // 新規
+            clients[index].products.push(newItem);
+          }
+          localStorage.setItem("clients", JSON.stringify(clients));
+          localStorage.setItem("selectedClient", JSON.stringify(clients[index]));
+
+          row.querySelector(".control-col").innerHTML = `
+            <button class="text-red-500 text-sm mr-2" onclick="deleteProductRow(this)">✕</button>
+            <button class="text-blue-500 text-sm" onclick="editProductRow(this)">✏️ 訂正</button>
+          `;
+
+          location.reload();
+        }
+      }
+
+      function editProductRow(btn) {
+        const row = btn.closest("tr");
+        const tds = row.querySelectorAll("td");
+
+        const term = tds[0].textContent.trim();
+        const code = tds[1].textContent.trim();
+        const name = tds[2].textContent.trim();
+        const paper = tds[3].textContent.trim();
+        const tb = tds[4].textContent.trim();
+        const bulk = tds[5].textContent.trim();
+
+        // 元値を記録
+        row.dataset.originalTerm = term;
+        row.dataset.originalCode = code;
+        row.dataset.originalName = name;
+
+        row.innerHTML = `
+          <td class="border px-2 py-1"><input type="number" class="w-full border rounded px-1 py-0.5 term" value="${term}"></td>
+          <td class="border px-2 py-1"><input type="text" class="w-full border rounded px-1 py-0.5 code" value="${code}"></td>
+          <td class="border px-2 py-1"><input type="text" class="w-full border rounded px-1 py-0.5 name" value="${name}"></td>
+          <td class="border px-2 py-1"><input type="number" class="w-full border rounded px-1 py-0.5 paper" value="${paper}" onchange="updateProductTotal(this)"></td>
+          <td class="border px-2 py-1"><input type="number" class="w-full border rounded px-1 py-0.5 tb" value="${tb}" onchange="updateProductTotal(this)"></td>
+          <td class="border px-2 py-1"><input type="number" class="w-full border rounded px-1 py-0.5 bulk" value="${bulk}" onchange="updateProductTotal(this)"></td>
+          <td class="border px-2 py-1 text-sm text-right total">${calculateProductTotal(paper, tb, bulk)}</td>
+          <td class="border px-2 py-1 text-center control-col">
+            <button class="text-blue-600 text-sm" onclick="saveProductRow(this)">保存</button>
+          </td>
+        `;
+      }
+
+
+      function deleteProductRow(btn) {
+        const row = btn.closest("tr");
+        const term = parseInt(row.querySelector(".term")?.value);
+        const code = row.querySelector(".code")?.value.trim();
+        const name = row.querySelector(".name")?.value.trim();
+
+        const clients = JSON.parse(localStorage.getItem("clients") || "[]");
+        const selected = JSON.parse(localStorage.getItem("selectedClient") || "{}");
+        const index = clients.findIndex(c => c.name === selected.name && c.code === selected.code);
+
+        if (index !== -1) {
+          clients[index].products = (clients[index].products || []).filter(p =>
+            !(p.term === term && p.code === code && p.name === name)
+          );
+          localStorage.setItem("clients", JSON.stringify(clients));
+          localStorage.setItem("selectedClient", JSON.stringify(clients[index]));
+        }
+
+        row.remove();
       }
 
       function addMeetingRow(data = {}, isNew = true) {
