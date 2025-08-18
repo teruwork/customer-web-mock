@@ -45,7 +45,8 @@
         <div><label class="block text-sm">電話番号</label><input id="phone" class="w-full border rounded px-2 py-1" /></div>
         <div><label class="block text-sm">FAX番号</label><input id="fax" class="w-full border rounded px-2 py-1" /></div>
         <div><label class="block text-sm">設立年月日</label><input id="established" class="w-full border rounded px-2 py-1" /></div>
-        <div class="md:col-span-2"><label class="block text-sm">顧客メモ</label><input id="memo" class="w-full border rounded px-2 py-1" /></div>
+        <div><label class="block text-sm">販売目標（t）</label><input id="target" class="w-full border rounded px-2 py-1" /></div>
+        <div class="md:col-span-2"><label class="block text-sm">概況</label><input id="memo" class="w-full border rounded px-2 py-1" /></div>
       </div>
       <div class="mt-4">
         <label class="block font-semibold mb-2">担当者一覧</label>
@@ -69,7 +70,7 @@
       const c = isEdit ? clients[index] : {};
       document.getElementById("modalTitle").textContent = isEdit ? "顧客編集" : "新規顧客登録";
 
-      ["name", "code", "postal", "address", "phone", "fax", "established", "memo"].forEach(id => {
+      ["name", "code", "postal", "address", "phone", "fax", "established", "memo", "target"].forEach(id => {
         document.getElementById(id).value = c[id] || "";
       });
 
@@ -107,7 +108,7 @@
 
     function saveClient() {
       const data = {};
-      ["name", "code", "postal", "address", "phone", "fax", "established", "memo"].forEach(id => {
+      ["name", "code", "postal", "address", "phone", "fax", "established", "memo", "target"].forEach(id => {
         data[id] = document.getElementById(id).value.trim();
       });
       if (!data.name) return alert("会社名は必須です");
@@ -185,6 +186,7 @@
             phone: "03-1234-5678",
             fax: "03-1234-9999",
             established: "2015年3月",
+            target: 500,
             memo: "長期的な取引を希望。資料送付の頻度に注意。",
             contacts: [
               { name: "鈴木 太郎", email: "suzuki@example.com", note: "価格重視" },

@@ -30,6 +30,38 @@
       <p id="clientMemo" class="whitespace-pre-wrap min-h-[6rem] text-gray-800"></p>
     </div>
 
+    <div class="bg-white p-4 rounded shadow mb-6" id="salesHistory">
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="font-semibold text-lg">販売実績</h2>
+        <div class="text-sm text-gray-600 flex items-center gap-4">
+          <span id="salesTarget"></span>
+          <button onclick="addSalesRow()" class="px-3 py-1 bg-gray-200 hover:bg-gray-300 text-sm rounded">＋
+            販売実績を追加</button>
+        </div>
+      </div>
+
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="px-2 py-1 text-xs text-left text-gray-600">期</th>
+            <th class="px-2 py-1 text-xs text-left text-gray-600">重量（t）</th>
+            <th class="px-2 py-1 text-xs text-left text-gray-600">前年比</th>
+            <th class="px-2 py-1 text-xs text-left text-gray-600">金額（千円）</th>
+            <th class="px-2 py-1 text-xs text-left text-gray-600">前年比</th>
+            <th class="px-2 py-1 text-xs text-left text-gray-600">単価（kg/円）</th>
+            <th class="px-2 py-1 text-xs text-left text-gray-600">前年比</th>
+            <th class="px-2 py-1 text-xs text-left text-gray-600">制御</th>
+          </tr>
+        </thead>
+        <tbody id="salesBody" class="divide-y divide-gray-200"></tbody>
+      </table>
+    </div>
+
+    <div class="bg-white p-4 rounded shadow mb-6" id="productList">
+      <h2 class="font-semibold text-lg mb-2">取扱商品一覧</h2>
+      <ul id="productItems" class="list-disc list-inside"></ul>
+    </div>
+
     <div class="bg-white p-4 rounded shadow mb-6">
       <div class="flex justify-between items-center mb-2">
         <label class="block font-semibold">面談履歴</label>
@@ -54,26 +86,6 @@
       </div>
     </div>
 
-    <div class="bg-white p-4 rounded shadow mb-6" id="productList">
-      <h2 class="font-semibold text-lg mb-2">取り扱い商品一覧</h2>
-      <ul id="productItems" class="list-disc list-inside"></ul>
-    </div>
-
-    <div class="bg-white p-4 rounded shadow" id="salesHistory">
-      <h2 class="font-semibold text-lg mb-2">販売実績</h2>
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-100">
-          <tr>
-            <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">年月</th>
-            <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">商品名</th>
-            <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">数量</th>
-            <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">金額</th>
-          </tr>
-        </thead>
-        <tbody id="salesBody" class="divide-y divide-gray-200"></tbody>
-      </table>
-    </div>
-
     <!-- 訂正モーダル -->
     <div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
       <div class="bg-white p-6 rounded shadow-lg w-full max-w-3xl overflow-y-auto max-h-screen">
@@ -93,7 +105,9 @@
           </div>
           <div><label class="block text-sm">設立年月日</label><input id="established"
               class="w-full border rounded px-2 py-1" /></div>
-          <div class="md:col-span-2"><label class="block text-sm">顧客メモ</label><input id="memo"
+          <div><label class="block text-sm">販売目標（t）</label><input id="target" class="w-full border rounded px-2 py-1" />
+          </div>
+          <div class="md:col-span-2"><label class="block text-sm">概況</label><input id="memo"
               class="w-full border rounded px-2 py-1" /></div>
         </div>
         <div class="mt-4">
@@ -133,24 +147,44 @@
             </div>`;
           document.getElementById('contactInfo').insertAdjacentHTML('beforeend', contact);
         });
+        document.getElementById('salesTarget').textContent = client.target ? `販売目標 ${client.target} t` : '';
+        const sales = client.sales || [];
+        sales.forEach((s, i) => {
+          const prev = sales[i - 1];
+          const format = n => n?.toLocaleString?.() ?? "-";
+          const diff = (curr, prev) => {
+            if (prev === undefined || prev === 0) return "-";
+            const d = ((curr - prev) / prev * 100).toFixed(1);
+            return (d < 0 ? "▲" : "") + d + "%";
+          };
+
+          const price = s.amount && s.weight ? (s.amount * 1000 / s.weight) : 0;
+
+          const html = `
+            <tr>
+              <td class="px-2 py-1 text-sm">${s.term}</td>
+              <td class="px-2 py-1 text-sm text-right">${format(s.weight)}</td>
+              <td class="px-2 py-1 text-sm text-right">${diff(s.weight, prev?.weight)}</td>
+              <td class="px-2 py-1 text-sm text-right">${format(s.amount)}</td>
+              <td class="px-2 py-1 text-sm text-right">${diff(s.amount, prev?.amount)}</td>
+              <td class="px-2 py-1 text-sm text-right">${format(Math.round(price))}</td>
+              <td class="px-2 py-1 text-sm text-right">${diff(price, prev?.amount && prev?.weight ? prev.amount * 1000 / prev.weight : undefined)}</td>
+              <td class="px-2 py-1 text-center control-col">
+                <button class="text-red-500 text-sm mr-2" onclick="deleteSalesRow(this)">✕</button>
+                <button class="text-blue-500 text-sm" onclick="editSalesRow(this)">✏️ 訂正</button>
+              </td>
+            </tr>
+          `;
+          document.getElementById("salesBody").insertAdjacentHTML("beforeend", html);
+        });
         (client.meetings || []).forEach(m => addMeetingRow(m, false));
         client.products?.forEach(p => {
           document.getElementById('productItems').insertAdjacentHTML('beforeend', `<li>${p}</li>`);
         });
-        client.sales?.forEach(s => {
-          const row = `
-            <tr>
-              <td class="px-4 py-2 text-sm">${s.date}</td>
-              <td class="px-4 py-2 text-sm">${s.product}</td>
-              <td class="px-4 py-2 text-sm">${s.quantity}</td>
-              <td class="px-4 py-2 text-sm">${s.amount}</td>
-            </tr>`;
-          document.getElementById('salesBody').insertAdjacentHTML('beforeend', row);
-        });
       }
 
       function openEditModal() {
-        const keys = ["name", "code", "postal", "address", "phone", "fax", "established", "memo"];
+        const keys = ["name", "code", "postal", "address", "phone", "fax", "established", "memo", "target"];
         keys.forEach(id => document.getElementById(id).value = client[id] || "");
         const container = document.getElementById("contacts");
         container.innerHTML = "";
@@ -165,22 +199,152 @@
         document.getElementById("modal").classList.add("hidden");
       }
 
+      function addSalesRow(data = {}, isNew = true) {
+        const tbody = document.getElementById("salesBody");
+        const tr = document.createElement("tr");
+
+        const term = data.term || "";
+        const weight = data.weight || "";
+        const amount = data.amount || "";
+
+        tr.innerHTML = `
+    <td class="border px-2 py-1"><input type="number" class="w-full border rounded px-1 py-0.5 term" value="${term}"></td>
+    <td class="border px-2 py-1"><input type="number" class="w-full border rounded px-1 py-0.5 weight" value="${weight}" onchange="updateSalesRow(this)"></td>
+    <td class="border px-2 py-1 text-sm text-center">-</td>
+    <td class="border px-2 py-1"><input type="number" class="w-full border rounded px-1 py-0.5 amount" value="${amount}" onchange="updateSalesRow(this)"></td>
+    <td class="border px-2 py-1 text-sm text-center">-</td>
+    <td class="border px-2 py-1 text-sm text-right unitPrice">-</td>
+    <td class="border px-2 py-1 text-sm text-center">-</td>
+    <td class="border px-2 py-1 text-center control-col">
+      ${isNew
+            ? `<button class="text-blue-600 text-sm" onclick="saveSalesRow(this)">保存</button>`
+            : `<button class="text-red-500 text-sm" onclick="deleteSalesRow(this)">✕</button>`}
+    </td>
+  `;
+        tbody.appendChild(tr);
+      }
+
+      function saveSalesRow(btn) {
+        const row = btn.closest("tr");
+        const term = parseInt(row.querySelector(".term")?.value);
+        const weight = parseFloat(row.querySelector(".weight")?.value);
+        const amount = parseFloat(row.querySelector(".amount")?.value);
+
+        if (!term || !weight || !amount) return alert("期・重量・金額は必須です");
+
+        const clients = JSON.parse(localStorage.getItem("clients") || "[]");
+        const selected = JSON.parse(localStorage.getItem("selectedClient") || "{}");
+        const index = clients.findIndex(c => c.name === selected.name && c.code === selected.code);
+
+        if (index !== -1) {
+          const sales = clients[index].sales || [];
+
+          // 編集か新規かを判断
+          const existingRow = sales.findIndex(s => {
+            return row.dataset.originalTerm && parseInt(row.dataset.originalTerm) === s.term &&
+              row.dataset.originalWeight && parseFloat(row.dataset.originalWeight) === s.weight &&
+              row.dataset.originalAmount && parseFloat(row.dataset.originalAmount) === s.amount;
+          });
+
+          if (existingRow !== -1) {
+            // 編集：上書き
+            sales[existingRow] = { term, weight, amount };
+          } else {
+            // 新規：追加
+            sales.push({ term, weight, amount });
+          }
+
+          sales.sort((a, b) => a.term - b.term);
+          clients[index].sales = sales;
+          localStorage.setItem("clients", JSON.stringify(clients));
+          localStorage.setItem("selectedClient", JSON.stringify(clients[index]));
+
+          location.reload();
+        }
+      }
+
+
+      function editSalesRow(btn) {
+        const row = btn.closest("tr");
+        const tds = row.querySelectorAll("td");
+
+        const term = tds[0].textContent.trim();
+        const weight = tds[1].textContent.trim().replace(/,/g, "");
+        const amount = tds[3].textContent.trim().replace(/,/g, "");
+
+        row.dataset.originalTerm = term;
+        row.dataset.originalWeight = weight;
+        row.dataset.originalAmount = amount;
+
+        row.innerHTML = `
+          <td class="border px-2 py-1"><input type="number" class="w-full border rounded px-1 py-0.5 term" value="${term}"></td>
+          <td class="border px-2 py-1"><input type="number" class="w-full border rounded px-1 py-0.5 weight" value="${weight}"></td>
+          <td class="border px-2 py-1 text-sm text-center">-</td>
+          <td class="border px-2 py-1"><input type="number" class="w-full border rounded px-1 py-0.5 amount" value="${amount}"></td>
+          <td class="border px-2 py-1 text-sm text-center">-</td>
+          <td class="border px-2 py-1 text-sm text-right unitPrice">-</td>
+          <td class="border px-2 py-1 text-sm text-center">-</td>
+          <td class="border px-2 py-1 text-center control-col">
+            <button class="text-blue-600 text-sm" onclick="saveSalesRow(this)">保存</button>
+          </td>
+        `;
+      }
+
+      function updateSalesRow(input) {
+        const row = input.closest("tr");
+        const weightInput = row.querySelector(".weight");
+        const amountInput = row.querySelector(".amount");
+
+        const weight = parseFloat(weightInput?.value || 0);
+        const amount = parseFloat(amountInput?.value || 0);
+        const unitPrice = row.querySelector(".unitPrice");
+
+        if (weight > 0 && amount > 0) {
+          const price = Math.round((amount * 1000) / weight);
+          unitPrice.textContent = price.toLocaleString();
+        } else {
+          unitPrice.textContent = "-";
+        }
+      }
+
+
+      function deleteSalesRow(btn) {
+        const row = btn.closest("tr");
+        const term = parseInt(row.children[0]?.textContent.trim());
+        const weight = parseFloat(row.children[1]?.textContent.trim().replace(/,/g, ""));
+        const amount = parseFloat(row.children[3]?.textContent.trim().replace(/,/g, ""));
+
+
+        const clients = JSON.parse(localStorage.getItem("clients") || "[]");
+        const selected = JSON.parse(localStorage.getItem("selectedClient") || "{}");
+        const index = clients.findIndex(c => c.name === selected.name && c.code === selected.code);
+
+        if (index !== -1) {
+          clients[index].sales = (clients[index].sales || []).filter(s =>
+            !(s.term === term && s.weight === weight && s.amount === amount)
+          );
+          localStorage.setItem("clients", JSON.stringify(clients));
+          localStorage.setItem("selectedClient", JSON.stringify(clients[index]));
+          location.reload();
+        }
+      }
+
       function addMeetingRow(data = {}, isNew = true) {
         const container = document.getElementById("meetings");
         const tr = document.createElement("tr");
         tr.innerHTML = `
-    <td class="border px-2 py-1"><input type="date" value="${data.date || ''}" class="w-full border rounded px-1 py-0.5"></td>
-    <td class="border px-2 py-1"><input placeholder="商談先" value="${data.place || ''}" class="w-full border rounded px-1 py-0.5"></td>
-    <td class="border px-2 py-1"><input placeholder="商談相手" value="${data.attendees || ''}" class="w-full border rounded px-1 py-0.5"></td>
-    <td class="border px-2 py-1"><textarea placeholder="内容" class="w-full border rounded px-1 py-0.5">${data.content || ''}</textarea></td>
-    <td class="border px-2 py-1"><textarea placeholder="要望・課題" class="w-full border rounded px-1 py-0.5">${data.issues || ''}</textarea></td>
-    <td class="border px-2 py-1"><textarea placeholder="次回アクション" class="w-full border rounded px-1 py-0.5">${data.next || ''}</textarea></td>
-    <td class="border px-2 py-1 text-center control-col">
-      ${isNew
+          <td class="border px-2 py-1"><input type="date" value="${data.date || ''}" class="w-full border rounded px-1 py-0.5"></td>
+          <td class="border px-2 py-1"><input placeholder="商談先" value="${data.place || ''}" class="w-full border rounded px-1 py-0.5"></td>
+          <td class="border px-2 py-1"><input placeholder="商談相手" value="${data.attendees || ''}" class="w-full border rounded px-1 py-0.5"></td>
+          <td class="border px-2 py-1"><textarea placeholder="内容" class="w-full border rounded px-1 py-0.5">${data.content || ''}</textarea></td>
+          <td class="border px-2 py-1"><textarea placeholder="要望・課題" class="w-full border rounded px-1 py-0.5">${data.issues || ''}</textarea></td>
+          <td class="border px-2 py-1"><textarea placeholder="次回アクション" class="w-full border rounded px-1 py-0.5">${data.next || ''}</textarea></td>
+          <td class="border px-2 py-1 text-center control-col">
+          ${isNew
             ? `<button class="text-blue-600 text-sm" onclick="saveMeetingRow(this)">保存</button>`
             : `<button class="text-red-500 text-sm" onclick="deleteMeetingRow(this)">✕</button>`}
-    </td>
-  `;
+          </td>
+        `;
         container.appendChild(tr);
       }
 
@@ -259,7 +423,7 @@
 
       function saveEdit() {
         const updated = {};
-        ["name", "code", "postal", "address", "phone", "fax", "established", "memo"].forEach(id => {
+        ["name", "code", "postal", "address", "phone", "fax", "established", "memo", "target"].forEach(id => {
           updated[id] = document.getElementById(id).value.trim();
         });
 
@@ -272,24 +436,9 @@
         });
         updated.contacts = contacts;
 
-        // const meetings = [];
-        // document.querySelectorAll("#meetings > div").forEach(div => {
-        //   const inputs = div.querySelectorAll("input, textarea");
-        //   meetings.push({
-        //     date: inputs[0].value,
-        //     place: inputs[1].value,
-        //     attendees: inputs[2].value,
-        //     content: inputs[3].value,
-        //     issues: inputs[4].value,
-        //     next: inputs[5].value
-        //   });
-        // });
-        // updated.meetings = meetings;
-
         const clients = JSON.parse(localStorage.getItem("clients") || "[]");
         const index = clients.findIndex(c => c.name === client.name && c.code === client.code);
         if (index !== -1) {
-          // updated.meetings = client.meetings || [];
           updated.products = client.products || [];
           updated.sales = client.sales || [];
           clients[index] = updated;
