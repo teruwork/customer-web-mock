@@ -490,7 +490,6 @@
         `;
       }
 
-
       function deleteProductRow(btn) {
         const row = btn.closest("tr");
         const term = parseInt(row.querySelector(".term")?.value);
@@ -512,6 +511,7 @@
         row.remove();
       }
 
+      // <!-- 面談履歴追加機能のロジック -->
       function addMeetingRow(data = {}, isNew = true) {
         const container = document.getElementById("meetings");
         const tr = document.createElement("tr");
@@ -528,6 +528,25 @@
             : `<button class="text-red-500 text-sm" onclick="deleteMeetingRow(this)">✕</button>`}
           </td>
         `;
+
+        if (!isNew) {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td class="px-2 py-1 text-sm border border-gray-200">${data.date || ""}</td>
+            <td class="px-2 py-1 text-sm border border-gray-200">${data.place || ""}</td>
+            <td class="px-2 py-1 text-sm border border-gray-200">${data.attendees || ""}</td>
+            <td class="px-2 py-1 text-sm border border-gray-200 whitespace-pre-wrap">${data.content || ""}</td>
+            <td class="px-2 py-1 text-sm border border-gray-200 whitespace-pre-wrap">${data.issues || ""}</td>
+            <td class="px-2 py-1 text-sm border border-gray-200 whitespace-pre-wrap">${data.next || ""}</td>
+            <td class="px-2 py-1 text-center border border-gray-200 control-col">
+              <button class="text-red-500 text-sm mr-2" onclick="deleteMeetingRow(this)">✕</button>
+              <button class="text-blue-500 text-sm" onclick="editMeetingRow(this)">✏️ 訂正</button>
+            </td>
+          `;
+          container.appendChild(tr);
+          return;
+        }
+
         container.appendChild(tr);
       }
 
@@ -548,28 +567,86 @@
         const index = clients.findIndex(c => c.name === selected.name && c.code === selected.code);
 
         if (index !== -1) {
-          clients[index].meetings = clients[index].meetings || [];
-          clients[index].meetings.push(newMeeting);
+          const meetings = clients[index].meetings || [];
+
+          const isEditing = !!(
+            row.dataset.originalDate &&
+            row.dataset.originalPlace &&
+            row.dataset.originalAttendees
+          );
+
+          if (isEditing) {
+            const i = meetings.findIndex(m =>
+              m.date === row.dataset.originalDate &&
+              m.place === row.dataset.originalPlace &&
+              m.attendees === row.dataset.originalAttendees &&
+              m.content === row.dataset.originalContent &&
+              m.issues === row.dataset.originalIssues &&
+              m.next === row.dataset.originalNext
+            );
+
+            if (i !== -1) {
+              meetings[i] = newMeeting;
+            } else {
+              meetings.push(newMeeting);
+            }
+          } else {
+            meetings.push(newMeeting);
+          }
+
+          clients[index].meetings = meetings;
           localStorage.setItem("clients", JSON.stringify(clients));
           localStorage.setItem("selectedClient", JSON.stringify(clients[index]));
-
-          // update row: 保存 → 削除ボタンに変える
-          row.querySelector(".control-col").innerHTML =
-            `<button class="text-red-500 text-sm" onclick="deleteMeetingRow(this)">✕</button>`;
+          location.reload();
         }
+      }
+
+      function editMeetingRow(btn) {
+        const row = btn.closest("tr");
+        const tds = row.querySelectorAll("td");
+
+        const date = tds[0].textContent.trim();
+        const place = tds[1].textContent.trim();
+        const attendees = tds[2].textContent.trim();
+        const content = tds[3].textContent.trim();
+        const issues = tds[4].textContent.trim();
+        const next = tds[5].textContent.trim();
+
+        // 保存用の元データ記録（削除・上書き時に使用）
+        row.dataset.originalDate = date;
+        row.dataset.originalPlace = place;
+        row.dataset.originalAttendees = attendees;
+        row.dataset.originalContent = content;
+        row.dataset.originalIssues = issues;
+        row.dataset.originalNext = next;
+
+        row.innerHTML = `
+          <td class="border px-2 py-1"><input type="date" value="${date}" class="w-full border rounded px-1 py-0.5"></td>
+          <td class="border px-2 py-1"><input value="${place}" class="w-full border rounded px-1 py-0.5" placeholder="商談先"></td>
+          <td class="border px-2 py-1"><input value="${attendees}" class="w-full border rounded px-1 py-0.5" placeholder="商談相手"></td>
+          <td class="border px-2 py-1"><textarea class="w-full border rounded px-1 py-0.5" placeholder="内容">${content}</textarea></td>
+          <td class="border px-2 py-1"><textarea class="w-full border rounded px-1 py-0.5" placeholder="要望・課題">${issues}</textarea></td>
+          <td class="border px-2 py-1"><textarea class="w-full border rounded px-1 py-0.5" placeholder="次回アクション">${next}</textarea></td>
+          <td class="border px-2 py-1 text-center control-col">
+            <button class="text-blue-600 text-sm" onclick="saveMeetingRow(this)">保存</button>
+          </td>
+        `;
       }
 
       function deleteMeetingRow(btn) {
         const row = btn.closest("tr");
-        const inputs = row.querySelectorAll("input, textarea");
-        const deleted = {
-          date: inputs[0].value,
-          place: inputs[1].value,
-          attendees: inputs[2].value,
-          content: inputs[3].value,
-          issues: inputs[4].value,
-          next: inputs[5].value
-        };
+        const getValue = (el) =>
+          el?.tagName === "INPUT" || el?.tagName === "TEXTAREA"
+            ? el.value.trim()
+            : el.textContent.trim();
+
+        const cells = row.querySelectorAll("td");
+        const date = getValue(cells[0].querySelector("input") || cells[0]);
+        const place = getValue(cells[1].querySelector("input") || cells[1]);
+        const attendees = getValue(cells[2].querySelector("input") || cells[2]);
+        const content = getValue(cells[3].querySelector("textarea") || cells[3]);
+        const issues = getValue(cells[4].querySelector("textarea") || cells[4]);
+        const next = getValue(cells[5].querySelector("textarea") || cells[5]);
 
         const clients = JSON.parse(localStorage.getItem("clients") || "[]");
         const selected = JSON.parse(localStorage.getItem("selectedClient") || "{}");
@@ -577,12 +654,12 @@
 
         if (index !== -1) {
           clients[index].meetings = (clients[index].meetings || []).filter(m =>
-            !(m.date === deleted.date &&
-              m.place === deleted.place &&
-              m.attendees === deleted.attendees &&
-              m.content === deleted.content &&
-              m.issues === deleted.issues &&
-              m.next === deleted.next)
+            !(m.date === date &&
+              m.place === place &&
+              m.attendees === attendees &&
+              m.content === content &&
+              m.issues === issues &&
+              m.next === next)
           );
           localStorage.setItem("clients", JSON.stringify(clients));
           localStorage.setItem("selectedClient", JSON.stringify(clients[index]));
